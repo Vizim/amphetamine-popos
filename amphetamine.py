@@ -54,66 +54,56 @@ def _write_png(path, width, height, get_pixel):
 
 # ── Pill icon drawing ─────────────────────────────────────────────────────────
 
-def _pill_pixel(x, y, size, active):
+def _circle_pill_pixel(x, y, size, active):
     """
-    Two-tone capsule/pill.
-    Left half  = white
-    Right half = green (active) or grey (inactive)
-    Dark outline + centre divider.
+    Circular scored tablet — like the Mac Amphetamine icon.
+    Round disc with a horizontal score line through the centre.
+    Top half slightly lighter, bottom slightly darker for depth.
     """
-    W, H = size, size
-    pw = int(W * 0.84)        # pill width
-    ph = int(H * 0.40)        # pill height
-    px = (W - pw) // 2        # left edge x
-    py = (H - ph) // 2        # top edge y
-    pr = ph // 2              # end-cap radius
-    cx_l = px + pr            # left cap centre x
-    cx_r = px + pw - pr       # right cap centre x
-    cy   = py + pr            # vertical centre y
+    cx, cy = size / 2.0, size / 2.0
+    r_out  = size * 0.44          # outer radius
+    r_in   = r_out - 2.2          # inner edge of outline ring
 
-    dx_l = x - cx_l
-    dx_r = x - cx_r
-    dy   = y - cy
+    dx = x - cx
+    dy = y - cy
+    d  = math.sqrt(dx * dx + dy * dy)
 
-    d_l = math.sqrt(dx_l**2 + dy**2)
-    d_r = math.sqrt(dx_r**2 + dy**2)
+    if d > r_out + 0.5:
+        return (0, 0, 0, 0)       # transparent outside
 
-    in_left_cap  = d_l <= pr
-    in_right_cap = d_r <= pr
-    in_body      = (cx_l <= x <= cx_r) and (py <= y <= py + ph)
-    inside       = in_left_cap or in_right_cap or in_body
+    # Anti-aliased alpha on outer edge
+    a = min(255, max(0, int(255 * (r_out + 0.5 - d))))
 
-    if not inside:
-        return (0, 0, 0, 0)          # fully transparent
+    # Dark border ring
+    if d > r_in:
+        return (28, 28, 28, a)
 
-    ol = 1.8                          # outline thickness
-    inner_l = d_l <= pr - ol
-    inner_r = d_r <= pr - ol
-    inner_b = (cx_l <= x <= cx_r) and (py + ol <= y <= py + ph - ol)
-    inner   = inner_l or inner_r or inner_b
+    # Horizontal score line ±1.2 px from centre
+    if abs(dy) <= 1.2:
+        if active:
+            return (15, 100, 44, a)   # dark green groove
+        else:
+            return (80, 80, 80, a)    # dark grey groove
 
-    if not inner:
-        return (30, 30, 30, 255)      # dark outline
-
-    mid_x = px + pw // 2
-    if abs(x - mid_x) <= 1:
-        return (30, 30, 30, 255)      # centre divider line
-
-    if x <= mid_x:
-        return (235, 235, 235, 255)   # left half — off-white
-
-    if active:
-        return (34, 197, 94, 255)     # right half — green  (active)
-    else:
-        return (150, 150, 150, 255)   # right half — grey   (inactive)
+    # Two-tone depth: lighter top, darker bottom
+    if dy < 0:                        # top half
+        if active:
+            return (80, 220, 130, a)  # lighter green
+        else:
+            return (200, 200, 200, a) # lighter grey
+    else:                             # bottom half
+        if active:
+            return (22, 155, 65, a)   # darker green
+        else:
+            return (115, 115, 115, a) # darker grey
 
 
 def generate_icons(size=64):
     os.makedirs(ICON_DIR, exist_ok=True)
     _write_png(ICON_AWAKE, size, size,
-               lambda x, y: _pill_pixel(x, y, size, True))
+               lambda x, y: _circle_pill_pixel(x, y, size, True))
     _write_png(ICON_SLEEP, size, size,
-               lambda x, y: _pill_pixel(x, y, size, False))
+               lambda x, y: _circle_pill_pixel(x, y, size, False))
 
 
 # ── Main app ──────────────────────────────────────────────────────────────────
