@@ -19,9 +19,12 @@ import struct
 import zlib
 
 APP_ID     = "amphetamine-popos"
-ICON_DIR   = os.path.expanduser("~/.local/share/amphetamine")
-ICON_AWAKE = os.path.join(ICON_DIR, "awake.png")
-ICON_SLEEP = os.path.join(ICON_DIR, "sleep.png")
+# Icons live in the XDG hicolor theme so tray hosts can resolve them by name.
+ICON_DIR   = os.path.expanduser("~/.local/share/icons/hicolor/64x64/apps")
+NAME_AWAKE = "amphetamine-awake"
+NAME_SLEEP = "amphetamine-sleep"
+ICON_AWAKE = os.path.join(ICON_DIR, NAME_AWAKE + ".png")
+ICON_SLEEP = os.path.join(ICON_DIR, NAME_SLEEP + ".png")
 
 
 # ── Pure-Python RGBA PNG writer ───────────────────────────────────────────────
@@ -98,12 +101,24 @@ def _circle_pill_pixel(x, y, size, active):
             return (115, 115, 115, a) # darker grey
 
 
+def _refresh_icon_cache():
+    """Best-effort refresh so newly written icons are picked up by name."""
+    try:
+        subprocess.run(["gtk-update-icon-cache", "-qtf",
+                        os.path.dirname(os.path.dirname(ICON_DIR))],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       timeout=10)
+    except Exception:
+        pass
+
+
 def generate_icons(size=64):
     os.makedirs(ICON_DIR, exist_ok=True)
     _write_png(ICON_AWAKE, size, size,
                lambda x, y: _circle_pill_pixel(x, y, size, True))
     _write_png(ICON_SLEEP, size, size,
                lambda x, y: _circle_pill_pixel(x, y, size, False))
+    _refresh_icon_cache()
 
 
 # ── Main app ──────────────────────────────────────────────────────────────────
@@ -119,11 +134,12 @@ class Amphetamine:
 
         self.indicator = AppIndicator3.Indicator.new(
             APP_ID,
-            ICON_SLEEP,
+            NAME_SLEEP,
             AppIndicator3.IndicatorCategory.APPLICATION_STATUS
         )
+        self.indicator.set_icon_theme_path(ICON_DIR)
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine: Inactive")
+        self.indicator.set_icon_full(NAME_SLEEP, "Amphetamine: Inactive")
 
         self.menu = Gtk.Menu()
         self.indicator.set_menu(self.menu)
@@ -199,7 +215,7 @@ class Amphetamine:
                 "--mode=block",
                 "sleep", "infinity"
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            self.indicator.set_icon_full(ICON_AWAKE, "Amphetamine: Active")
+            self.indicator.set_icon_full(NAME_AWAKE, "Amphetamine: Active")
         except FileNotFoundError:
             self._show_error("systemd-inhibit not found. Is systemd installed?")
 
@@ -216,7 +232,7 @@ class Amphetamine:
             self.timer_id = None
         self.remaining_sec = 0
         self.session_type  = None
-        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine: Inactive")
+        self.indicator.set_icon_full(NAME_SLEEP, "Amphetamine: Inactive")
 
     def _start_indefinite(self, _=None):
         self._stop_inhibit()
