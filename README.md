@@ -6,10 +6,10 @@ A Wayland-native keep-awake tray utility for Pop!_OS, inspired by [Amphetamine f
 
 ## Features
 
-- **Icon in top bar** — active (green) / inactive (grey)
-- **Indefinite sessions** — keep awake until you stop it
-- **Timed sessions** — 5m / 15m / 30m / 1h / 2h / 4h / 8h with live countdown in the menu
-- **Wayland native** — uses `systemd-inhibit` (no X11 hacks)
+- **Icon in top bar**: active (green) / inactive (grey)
+- **Indefinite sessions**: keep awake until you stop it
+- **Timed sessions**: 5m / 15m / 30m / 1h / 2h / 4h / 8h with live countdown in the menu
+- **Wayland native**: uses `systemd-inhibit` (no X11 hacks)
 - **Auto-starts on login** via `.desktop` entry
 - Zero dependencies beyond Python 3 + GTK3 (pre-installed on Pop!_OS)
 

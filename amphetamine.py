@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Amphetamine for Pop!_OS
-Wayland-compatible keep-awake tray app — mirrors macOS Amphetamine behaviour.
+Wayland-compatible keep-awake tray app that mirrors macOS Amphetamine behaviour.
 Uses systemd-inhibit to block sleep/idle properly on Wayland.
 """
 
@@ -56,7 +56,7 @@ def _write_png(path, width, height, get_pixel):
 
 def _circle_pill_pixel(x, y, size, active):
     """
-    Circular scored tablet — like the Mac Amphetamine icon.
+    Circular scored tablet, like the Mac Amphetamine icon.
     Round disc with a horizontal score line through the centre.
     Top half slightly lighter, bottom slightly darker for depth.
     """
@@ -123,7 +123,7 @@ class Amphetamine:
             AppIndicator3.IndicatorCategory.APPLICATION_STATUS
         )
         self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine — Inactive")
+        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine: Inactive")
 
         self.menu = Gtk.Menu()
         self.indicator.set_menu(self.menu)
@@ -137,13 +137,13 @@ class Amphetamine:
 
         # Status header (non-clickable)
         if self.session_type == 'indefinite':
-            hdr_text = "💊  Active — indefinite session"
+            hdr_text = "💊  Active: indefinite session"
         elif self.session_type == 'timed':
             m = self.remaining_sec // 60
             s = self.remaining_sec % 60
-            hdr_text = f"💊  Active — {m}m {s:02d}s remaining"
+            hdr_text = f"💊  Active: {m}m {s:02d}s remaining"
         else:
-            hdr_text = "💤  Inactive — system may sleep"
+            hdr_text = "💤  Inactive: system may sleep"
 
         header = Gtk.MenuItem(label=hdr_text)
         header.set_sensitive(False)
@@ -199,7 +199,7 @@ class Amphetamine:
                 "--mode=block",
                 "sleep", "infinity"
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            self.indicator.set_icon_full(ICON_AWAKE, "Amphetamine — Active")
+            self.indicator.set_icon_full(ICON_AWAKE, "Amphetamine: Active")
         except FileNotFoundError:
             self._show_error("systemd-inhibit not found. Is systemd installed?")
 
@@ -216,7 +216,7 @@ class Amphetamine:
             self.timer_id = None
         self.remaining_sec = 0
         self.session_type  = None
-        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine — Inactive")
+        self.indicator.set_icon_full(ICON_SLEEP, "Amphetamine: Inactive")
 
     def _start_indefinite(self, _=None):
         self._stop_inhibit()
